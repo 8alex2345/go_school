@@ -77,4 +77,80 @@ func Palindrome(slice []int) string {
 
 }
 
-//
+// НОВЫЕ ЗАДАЧИ НА СЛАЙСЫ !!!!!
+// Задача 1: Сумма элементов массива
+// Условие:
+// Создай массив из 5 целых чисел и вычисли сумму всех его элементов.
+func SumElem(arr [5]int) int {
+	result := 0
+	for _, elem := range arr {
+		result = result + elem
+	}
+	return result
+}
+
+// Задача 2: Поиск максимального элемента
+// **Условие:**
+// Найди наибольшее значение в массиве из 10 чисел.
+func MaxNum(arr [10]int) int {
+	maxNum := arr[0]
+	for _, elem := range arr {
+		if maxNum < elem {
+			maxNum = elem
+		}
+	}
+	return maxNum
+}
+
+//Задача 3: Количество чётных чисел
+//Условие:
+//Подсчитай, сколько в массиве из 8 элементов чётных чисел.
+
+func EvenNum(arr [8]int) int {
+	evenNum := 0
+	for _, num := range arr {
+		if num%2 == 0 {
+			evenNum++
+		}
+	}
+	return evenNum
+}
+
+// Задача 4: Реверс массива
+//Условие:
+// Выведи массив в обратном порядке.
+
+func ReverseArray(arr [5]int) [5]int {
+	for i := 0; i < len(arr)/2; i++ {
+		arr[i], arr[len(arr)-1-i] = arr[len(arr)-1-i], arr[i]
+	}
+	return arr
+
+}
+
+// Задача 5: Поиск элемента
+// условия:
+// ПРоверить есть ли в массиве определенное число, если есть вывестьи индекс
+
+func SearchElement(arr [4]int) int {
+	num := 8
+	index := 0
+	for idx, elem := range arr {
+		if elem == num {
+			index = idx
+		}
+	}
+	return index
+}
+
+// Задача6: Среднее значение
+// Условия:
+// Вычесли средние арифметические  массива чисел
+func AverageValue(arr [5]float64) float64 {
+	sum := 0.0
+	for _, elem := range arr {
+		sum += elem
+	}
+	result := sum / float64(len(arr))
+	return result
+}
