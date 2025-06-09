@@ -4,15 +4,16 @@
 
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 func main() {
 	s := []int{1, 2, 3, 4, 5}
 	idx := 2
 	s = append(s[:idx], s[idx+1:]...)
 	fmt.Println(s)
-	FiltrationEven([]int{1, 2, 3, 4, 5, 6})
-	Palindrome([]int{1, 2, 3, 2, 1})
 
 }
 
@@ -40,33 +41,41 @@ func CycleShift() {
 
 // Объединение строк в одну
 // Дан слайс строк, например []string{"Go", "is", "awesome"}. Объедини их в одну строку через пробел.
-func MergeLines() {
-	slice := []string{"Go", "is", "awesome"}
-	result := slice[0] + " " + slice[1] + " " + slice[2]
-	fmt.Println(result)
+func MergeLines(slice []string) string {
+	slice = []string{"Go", "is", "awesome"}
+	//result := slice[0] + " " + slice[1] + " " + slice[2]
+	result := strings.Join(slice, " ")
+	return result
+
 }
 
 // Фильтрация чётных чисел
 // Напиши функцию, которая принимает `[]int` и возвращает новый слайс, содержащий только чётные числа.
-func FiltrationEven(num []int) {
+func FiltrationEven(num []int) []int {
 	result := []int{}
 	for _, elem := range num {
 		if elem%2 == 0 {
 			result = append(result, elem)
 		}
 	}
-	fmt.Println(result)
+	return result
 }
 
 // Проверка на палиндром слайса
 // Проверь, является ли слайс палиндромом (одинаковый слева направо и справа налево).
 func Palindrome(slice []int) {
-	for i := 0; i < len(slice)/2; i++ {
-		if slice[i] != slice[len(slice)-1-i] {
+	left := 0
+	right := len(slice) - 1
+	for left < right {
+		if slice[left] != slice[right] {
 			fmt.Println(" Не Палиндром")
 			return
 		}
+		left++
+		right--
 	}
 	fmt.Println("Палиндром")
 
 }
+
+//
