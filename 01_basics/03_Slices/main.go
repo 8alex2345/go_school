@@ -29,14 +29,14 @@ func SliceMemory() {
 
 // Циклический сдвиг влево
 // Сдвинь все элементы слайса влево на 1, а первый — в конец.
-func CycleShift() {
-	s := []int{10, 20, 30, 40}
+func CycleShift(s []int) []int {
+	s = []int{10, 20, 30, 40}
 	first := s[0]
 	for i := 0; i < len(s)-1; i++ {
 		s[i] = s[i+1]
 	}
 	s[len(s)-1] = first
-	fmt.Println(s)
+	return s
 }
 
 // Объединение строк в одну
@@ -63,18 +63,17 @@ func FiltrationEven(num []int) []int {
 
 // Проверка на палиндром слайса
 // Проверь, является ли слайс палиндромом (одинаковый слева направо и справа налево).
-func Palindrome(slice []int) {
+func Palindrome(slice []int) string {
 	left := 0
 	right := len(slice) - 1
 	for left < right {
 		if slice[left] != slice[right] {
-			fmt.Println(" Не Палиндром")
-			return
+			return " Не Палиндром"
 		}
 		left++
 		right--
 	}
-	fmt.Println("Палиндром")
+	return "Палиндром"
 
 }
 
