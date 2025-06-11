@@ -30,7 +30,6 @@ func SliceMemory() {
 // Циклический сдвиг влево
 // Сдвинь все элементы слайса влево на 1, а первый — в конец.
 func CycleShift(s []int) []int {
-	s = []int{10, 20, 30, 40}
 	first := s[0]
 	for i := 0; i < len(s)-1; i++ {
 		s[i] = s[i+1]
@@ -41,8 +40,8 @@ func CycleShift(s []int) []int {
 
 // Объединение строк в одну
 // Дан слайс строк, например []string{"Go", "is", "awesome"}. Объедини их в одну строку через пробел.
-func MergeLines(slice []string) string {
-	slice = []string{"Go", "is", "awesome"}
+func MergeLines() string {
+	slice := []string{"Go", "is", "awesome"}
 	//result := slice[0] + " " + slice[1] + " " + slice[2]
 	result := strings.Join(slice, " ")
 	return result
