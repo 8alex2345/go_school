@@ -153,3 +153,51 @@ func AverageValue(arr [5]float64) float64 {
 	result := sum / float64(len(arr))
 	return result
 }
+
+// Преобразование числа в слайс
+// Пример: 123 -> [1, 2, 3]
+func NumberToSlice(num int) []int {
+	// Если число отрицательное, делаем его положительным
+	if num < 0 {
+		num = -num
+	}
+
+	// Если число 0, возвращаем слайс с одним элементом
+	if num == 0 {
+		return []int{0}
+	}
+
+	// Создаем пустой слайс
+	result := []int{}
+
+	// Пока число больше 0
+	for num > 0 {
+		// Получаем последнюю цифру
+		digit := num % 10
+		// Добавляем цифру в начало слайса
+		result = append([]int{digit}, result...)
+		// Убираем последнюю цифру из числа
+		num = num / 10
+	}
+
+	return result
+}
+
+// Подсчет количества каждого символа в строке
+func CounterSymbol(str string) map[string]int {
+	runeStr := []rune(str)
+	myMap := make(map[string]int)
+	for _, elem := range runeStr {
+		myMap[string(elem)]++
+	}
+	return myMap
+}
+
+// Вывод подсчета символов в читаемом виде
+func PrintCounterSymbol(str string) {
+	result := CounterSymbol(str)
+	fmt.Println("Подсчет символов в строке:", str)
+	for char, count := range result {
+		fmt.Printf("'%c': %d\n", char, count)
+	}
+}

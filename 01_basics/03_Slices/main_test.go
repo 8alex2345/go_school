@@ -156,3 +156,78 @@ func TestAverageValue(t *testing.T) {
 		assert.Equal(t, testCase.expected, res)
 	}
 }
+
+// Тест преобразования числа в слайс
+func TestNumberToSlice(t *testing.T) {
+	testTable := []struct {
+		number   int
+		expected []int
+	}{
+		{
+			number:   123,
+			expected: []int{1, 2, 3},
+		},
+		{
+			number:   0,
+			expected: []int{0},
+		},
+		{
+			number:   -456,
+			expected: []int{4, 5, 6},
+		},
+		{
+			number:   1000,
+			expected: []int{1, 0, 0, 0},
+		},
+	}
+
+	for _, testCase := range testTable {
+		result := NumberToSlice(testCase.number)
+		assert.Equal(t, testCase.expected, result,
+			"Ошибка преобразования числа %d в слайс. Ожидалось %v, получено %v",
+			testCase.number, testCase.expected, result)
+	}
+}
+
+// Тест подсчета символов в строке
+func TestCounterSymbol(t *testing.T) {
+	testTable := []struct {
+		input    string
+		expected map[string]int
+	}{
+		{
+			input: "hello",
+			expected: map[string]int{
+				"h": 1,
+				"e": 1,
+				"l": 2,
+				"o": 1,
+			},
+		},
+		{
+			input: "привет",
+			expected: map[string]int{
+				"п": 1,
+				"р": 1,
+				"и": 1,
+				"в": 1,
+				"е": 1,
+				"т": 1,
+			},
+		},
+		{
+			input: "aabbcc",
+			expected: map[string]int{
+				"a": 2,
+				"b": 2,
+				"c": 2,
+			},
+		},
+	}
+
+	for _, testCase := range testTable {
+		result := CounterSymbol(testCase.input)
+		assert.Equal(t, testCase.expected, result,
+			"Ошибка подсчета символов в строке '%s'", testCase.input)
+	}
+}
