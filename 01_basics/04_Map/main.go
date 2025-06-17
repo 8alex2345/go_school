@@ -26,6 +26,8 @@ func main() {
 	animals := map[string]string{
 		"cat": "кот",
 		"dog": "собака",
+		"a":   "x",
+		"b":   "x",
 	}
 	fmt.Println(InvertMap(animals))
 
@@ -36,10 +38,17 @@ func main() {
 	// Задача 5: Сравнение двух мап
 
 	fmt.Println("Задача 5")
-	ComparisoMap()
+	map1 := map[string]int{"a": 1, "b": 2}
+	map2 := map[string]int{"b": 2, "a": 1}
+	fmt.Println(ComparisoMap(map1, map2))
 	// Задача 6: Найти ключ по значению
+	myMap := map[string]int{
+		"x": 10,
+		"y": 20,
+		"z": 40,
+	}
 	fmt.Println("Задача 6")
-	fmt.Println(FindKey())
+	fmt.Println(FindKey(myMap))
 }
 
 // ### **Задача 1: Подсчёт количества цифр в числе**
@@ -47,6 +56,12 @@ func main() {
 //
 //	`map[int]int`, где ключ — цифра, а значение — сколько раз она встречается.
 func QuantityNum(numbers int) map[int]int {
+	if numbers < 0 {
+		numbers = -numbers
+	}
+	if numbers == 0 {
+		return map[int]int{0: 1}
+	}
 	slicesNum := []int{}
 	for numbers > 0 {
 		digit := numbers % 10
@@ -64,9 +79,8 @@ func QuantityNum(numbers int) map[int]int {
 //Прочитай строку и создай map[rune]int, где хранятся все символы и их количество.
 
 func CounterSymbol(str string) map[rune]int {
-	runeStr := []rune(str)
 	myMap := make(map[rune]int)
-	for _, elem := range runeStr {
+	for _, elem := range str {
 		myMap[elem]++
 	}
 	return myMap
@@ -103,21 +117,19 @@ func IndexWords(word string) map[string]int {
 // Напиши функцию, которая сравнивает две `map[string]int` и возвращает `true`,
 //
 //	если они одинаковы (одинаковые ключи и значения), иначе `false`.
-func ComparisoMap() {
-	map1 := map[string]int{"a": 1, "b": 2}
-	map2 := map[string]int{"b": 2, "a": 1}
+func ComparisoMap(map1, map2 map[string]int) bool {
 	if len(map1) != len(map2) {
-		fmt.Println(false)
-		return
+
+		return false
 	}
 	for key, value := range map1 {
 		if map2Value, exists := map2[key]; !exists || map2Value != value {
-			fmt.Println(false)
+			return false
 		}
 
 	}
 
-	fmt.Println(true)
+	return true
 
 }
 
@@ -125,20 +137,14 @@ func ComparisoMap() {
 //Напиши функцию, которая ищет **ключ по значению** в мапе `map[string]int`.
 //  Верни первый найденный ключ (или `"not found"`).
 
-func FindKey() string {
-	myMap := map[string]int{
-		"x": 10,
-		"y": 20,
-		"z": 40,
-	}
+func FindKey(myMap map[string]int) string {
 	meaning := 20
-	var resKey string
 	for key, vaule := range myMap {
 		if vaule == meaning {
-			resKey = key
-			break
+			return key
+
 		}
 	}
-	return resKey
+	return "not found"
 
 }
