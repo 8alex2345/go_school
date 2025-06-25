@@ -27,7 +27,7 @@ func NewCar(name string, capacity, fuelLevel int) *Car {
 
 type GasSstationImpl interface {
 	RefuelCar(liter int)
-	GetFuelGaz(gas *GasStation) int
+	GetFuelGaz(liter int) bool
 }
 
 func (c *Car) RefuelCar(liter int) {
