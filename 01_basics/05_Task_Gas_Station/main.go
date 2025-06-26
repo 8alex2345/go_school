@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 )
 
@@ -24,28 +25,20 @@ func NewCar(name string, capacity, fuelLevel int) *Car {
 		fuelLevel: fuelLevel,
 	}
 }
-
-type GasSstationImpl interface {
-	RefuelCar(liter int)
-	GetFuelGaz(liter int) bool
-}
-
 func (c *Car) RefuelCar(liter int) {
-	if c.fuelLevel+liter > c.capacity {
-		c.fuelLevel = c.capacity
-		fmt.Println("Бак заполнен")
+	if c.fuelLevel == c.capacity {
+		fmt.Println("Бак полный заправка не нужна")
 	} else {
 		c.fuelLevel += liter
 	}
 }
-func (g *GasStation) GetFuelGaz(liter int) bool {
+func (g *GasStation) GetFuelGaz(liter int) error {
 	if g.amountFuel < liter {
-		fmt.Println("Заправка закрыта, нет бензина")
-		return false
+		return errors.New("заправка закрыта, нет бензина")
 	}
 	g.capacityGas -= liter
 	fmt.Println("Топливо есть, можно заправляться")
-	return true
+	return nil
 }
 
 func CarRefuelingGas(station *GasStation, car *Car, liter int) {
@@ -53,13 +46,15 @@ func CarRefuelingGas(station *GasStation, car *Car, liter int) {
 	fmt.Println("До полного бака не хватает - ", shortage, "Введите количество которое хотите заправить - ", liter)
 	if shortage < liter || liter < 1 {
 		fmt.Println("Вы ввели недопустимое количество")
+		return
 	}
-	if station.GetFuelGaz(liter) {
-		car.RefuelCar(liter)
-		fmt.Println("Заправка закончена, залито в бак - ", liter)
-	} else {
-		fmt.Println("На заправке недостоточно топлива")
+	err := station.GetFuelGaz(liter)
+	if err != nil {
+		fmt.Println("нет бензина на заправке")
+		return
 	}
+	car.RefuelCar(liter)
+	fmt.Println("Заправка закончена, залито в бак - ", liter)
 
 }
 
