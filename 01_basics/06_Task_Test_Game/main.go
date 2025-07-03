@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 )
 
@@ -18,28 +19,41 @@ type Room struct {
 	chairItems  []string
 	exist       []string
 }
+type User struct {
+	CurrentRoom string
+	BackPack    bool
+	Inventory   []string
+}
+
+func StartGame(g *Game) error {
+	if g.User.CurrentRoom != "кухня" {
+		return errors.New("игру можно начать только с кухни")
+	}
+	g.KitchenState = true
+	return nil
+}
 
 func InitGame() *Game {
 	return &Game{
 		Rooms: map[string]Room{
 			"кухня": {
-				description: "надо собрать рюкзак и идти в универ.",
+				description: ", надо собрать рюкзак и идти в универ.",
 				tableItems:  []string{"чай"},
-				exist:       []string{"Коридор"},
+				exist:       []string{"коридор"},
 			},
 			"коридор": {
-				description: "Ничего интересного",
-				exist:       []string{"Кухня", "Комната", "Улица"},
+				description: " Ничего интересного ",
+				exist:       []string{"кухня", "комната", "улица"},
 			},
 			"комната": {
-				description: "Ты в своей комнате",
+				description: " Ты в своей комнате ",
 				tableItems:  []string{"ключи", "конспекты"},
 				chairItems:  []string{"рюкзак"},
-				exist:       []string{"Кухня", "Комната", "Улица"},
+				exist:       []string{"кухня", "комната", "улица"},
 			},
 			"улица": {
-				description: "На улице весна",
-				exist:       []string{"Домой"},
+				description: " на улице весна ",
+				exist:       []string{"домой"},
 			},
 		},
 		User: User{
@@ -48,17 +62,6 @@ func InitGame() *Game {
 		DoorState:    false,
 		KitchenState: true,
 	}
-}
-func StartGame(g *Game) error {
-	if g.User.CurrentRoom != "кухня" {
-		return errors.New("Игру можно начать только с кухни")
-	}
-	g.KitchenState = true
-	return nil
-}
-
-type User struct {
-	CurrentRoom string
 }
 
 func (g *Game) Look() string { // осмотреться
@@ -80,22 +83,101 @@ func (g *Game) Look() string { // осмотреться
 	return result
 
 }
-func (u *User) Walk() string { // ходить
+func (g *Game) Walk(existName string) string { // ходить
+	room, ok := g.Rooms[g.User.CurrentRoom]
+	if !ok {
+		return "Неизвестная комната"
+	}
+	for _, exit := range room.exist {
+		if exit == existName {
+			g.User.CurrentRoom = existName
+
+			return g.Look()
+		}
+	}
+
+	return "нет пути в " + existName
+}
+func (g *Game) PutOn() string { // надеть
+	room, ok := g.Rooms[g.User.CurrentRoom]
+	if !ok {
+		return "Неизвестная комната"
+	}
+	for i, item := range room.chairItems {
+		if item == "рюкзак" {
+			room.chairItems = append(room.chairItems[:i], room.chairItems[i+1:]...)
+			g.Rooms[g.User.CurrentRoom] = room
+			g.User.BackPack = true
+			res := "Вы надели " + item
+			return res
+		}
+	}
+	return "здесь нет рюкзака"
+}
+func (g *Game) Take(itemName string) string { // Взять
+	if !g.User.BackPack {
+		return "некуда класть"
+	}
+	room, ok := g.Rooms[g.User.CurrentRoom]
+	if !ok {
+		return "неизвестная комната"
+	}
+	for i, item := range room.tableItems {
+		if item == itemName {
+			g.User.Inventory = append(g.User.Inventory, item)
+			room.tableItems = append(room.tableItems[:i], room.tableItems[i+1:]...)
+			g.Rooms[g.User.CurrentRoom] = room
+			res := "Предмет добавлен в инвентарь: " + item
+			return res
+		}
+	}
+	return "Нет такого"
 
 }
-func (u *User) PutOn() string { // надеть
-
+func (g *Game) Use(itemName string) string { // Использовать
+	if itemName != "Применить ключи дверь" {
+		return "не к чему применять"
+	}
+	for _, item := range g.User.Inventory {
+		if item == "ключи" {
+			g.DoorState = true
+			return "Дверь открыта"
+		}
+	}
+	return "Нет предмета в инвентаре"
 }
-func (u *User) Take() string { // Взять
-
-}
-func (u *User) Use() string { // Использовать
-
-}
-func hendlCommand(command string, user *User) {
+func hendleCommand(g *Game, command string) string {
+	commands := map[string]func() string{
+		"осмотреться": g.Look,
+		"идти коридор": func() string {
+			return g.Walk("коридор")
+		},
+		"идти комната": func() string {
+			return g.Walk("комната")
+		},
+		"надеть рюкзак": g.PutOn,
+		"взять ключи": func() string {
+			return g.Take("ключи")
+		},
+		"взять конспекты": func() string {
+			return g.Take("конспекты")
+		},
+		"применить ключи дверь": func() string {
+			return g.Use("применить ключи дверь")
+		},
+		"идти улица": func() string {
+			return g.Walk("улица")
+		},
+	}
+	if cmd, ok := commands[command]; ok {
+		return cmd()
+	}
+	return "не известная команда"
 
 }
 
 func main() {
-
+	game := InitGame()
+	fmt.Println(hendleCommand(game, "осмотреться"))
+	fmt.Println(hendleCommand(game, "идти коридор"))
 }
