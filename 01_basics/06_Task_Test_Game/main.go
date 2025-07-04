@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 )
 
@@ -23,6 +22,7 @@ type User struct {
 	CurrentRoom string
 	BackPack    bool
 	Inventory   []string
+	UserState   string
 }
 
 func StartGame(g *Game) error {
@@ -37,22 +37,22 @@ func InitGame() *Game {
 	return &Game{
 		Rooms: map[string]Room{
 			"кухня": {
-				description: ", надо собрать рюкзак и идти в универ.",
+				description: "надо собрать рюкзак и идти в универ",
 				tableItems:  []string{"чай"},
 				exist:       []string{"коридор"},
 			},
 			"коридор": {
-				description: " Ничего интересного ",
+				description: "ничего интересного",
 				exist:       []string{"кухня", "комната", "улица"},
 			},
 			"комната": {
-				description: " Ты в своей комнате ",
+				description: "ты в своей комнате",
 				tableItems:  []string{"ключи", "конспекты"},
 				chairItems:  []string{"рюкзак"},
-				exist:       []string{"кухня", "комната", "улица"},
+				exist:       []string{"коридор"},
 			},
 			"улица": {
-				description: " на улице весна ",
+				description: "на улице весна",
 				exist:       []string{"домой"},
 			},
 		},
@@ -67,32 +67,50 @@ func InitGame() *Game {
 func (g *Game) Look() string { // осмотреться
 	room, ok := g.Rooms[g.User.CurrentRoom]
 	if !ok {
-		return "Неизвестная комната"
+		return "неизвестная комната"
 	}
-	result := "Ты находишься на " + g.User.CurrentRoom
-	if len(room.chairItems) > 0 {
-		result = result + ", на стуле: " + strings.Join(room.chairItems, ", ")
+	result := []string{}
+	if g.User.CurrentRoom == "кухня" {
+		result = append(result, "ты находишься на кухне")
+
 	}
+
 	if len(room.tableItems) > 0 {
-		result = result + ", на столе: " + strings.Join(room.tableItems, ", ")
+		result = append(result, "на столе: "+strings.Join(room.tableItems, ", "))
 	}
-	result += room.description
+	if len(room.chairItems) > 0 {
+		result = append(result, "на стуле: "+strings.Join(room.chairItems, ", "))
+	}
+	if len(room.chairItems) == 0 && len(room.tableItems) == 0 {
+		result = []string{"пустая комната"}
+	} else if room.description != "" {
+		if g.User.CurrentRoom == "кухня" {
+			result = append(result, strings.TrimSpace(room.description))
+		} else if g.User.CurrentRoom != "кухня" && len(result) == 0 {
+			result = append(result, room.description)
+		}
+	}
+	res := strings.Join(result, ", ")
 	if len(room.exist) > 0 {
-		result += "Можно пройти - " + strings.Join(room.exist, ", ")
+		res += ". можно пройти - " + strings.Join(room.exist, ", ")
 	}
-	return result
+	return res
 
 }
 func (g *Game) Walk(existName string) string { // ходить
 	room, ok := g.Rooms[g.User.CurrentRoom]
 	if !ok {
-		return "Неизвестная комната"
+		return "неизвестная комната"
 	}
 	for _, exit := range room.exist {
 		if exit == existName {
 			g.User.CurrentRoom = existName
-
-			return g.Look()
+			newRoom, ok := g.Rooms[existName]
+			if !ok {
+				return "неизвестная комната"
+			}
+			result := newRoom.description + ". можно пройти - " + strings.Join(newRoom.exist, ", ")
+			return result
 		}
 	}
 
@@ -101,14 +119,14 @@ func (g *Game) Walk(existName string) string { // ходить
 func (g *Game) PutOn() string { // надеть
 	room, ok := g.Rooms[g.User.CurrentRoom]
 	if !ok {
-		return "Неизвестная комната"
+		return "неизвестная комната"
 	}
 	for i, item := range room.chairItems {
 		if item == "рюкзак" {
 			room.chairItems = append(room.chairItems[:i], room.chairItems[i+1:]...)
 			g.Rooms[g.User.CurrentRoom] = room
 			g.User.BackPack = true
-			res := "Вы надели " + item
+			res := "вы надели: " + item
 			return res
 		}
 	}
@@ -127,57 +145,60 @@ func (g *Game) Take(itemName string) string { // Взять
 			g.User.Inventory = append(g.User.Inventory, item)
 			room.tableItems = append(room.tableItems[:i], room.tableItems[i+1:]...)
 			g.Rooms[g.User.CurrentRoom] = room
-			res := "Предмет добавлен в инвентарь: " + item
+			res := "предмет добавлен в инвентарь: " + item
 			return res
 		}
 	}
-	return "Нет такого"
+	return "нет такого"
 
 }
 func (g *Game) Use(itemName string) string { // Использовать
-	if itemName != "Применить ключи дверь" {
+	if itemName != "применить ключи дверь" {
 		return "не к чему применять"
 	}
 	for _, item := range g.User.Inventory {
 		if item == "ключи" {
 			g.DoorState = true
-			return "Дверь открыта"
+			return "дверь открыта"
 		}
 	}
-	return "Нет предмета в инвентаре"
-}
-func hendleCommand(g *Game, command string) string {
-	commands := map[string]func() string{
-		"осмотреться": g.Look,
-		"идти коридор": func() string {
-			return g.Walk("коридор")
-		},
-		"идти комната": func() string {
-			return g.Walk("комната")
-		},
-		"надеть рюкзак": g.PutOn,
-		"взять ключи": func() string {
-			return g.Take("ключи")
-		},
-		"взять конспекты": func() string {
-			return g.Take("конспекты")
-		},
-		"применить ключи дверь": func() string {
-			return g.Use("применить ключи дверь")
-		},
-		"идти улица": func() string {
-			return g.Walk("улица")
-		},
-	}
-	if cmd, ok := commands[command]; ok {
-		return cmd()
-	}
-	return "не известная команда"
+	return "нет предмета в инвентаре - ключи"
 
+}
+func handleCommand(command string, g *Game) string {
+	words := strings.Fields(command)
+	if len(words) == 0 {
+		return "пустая строка"
+	}
+	switch words[0] {
+	case "осмотреться":
+		return g.Look()
+	case "идти":
+		if len(words) > 1 {
+			return g.Walk(strings.Join(words[1:], " "))
+		}
+		return "не указано куда идти"
+	case "надеть":
+		if len(words) > 1 {
+			return g.PutOn()
+		}
+		return "не указано что надеть"
+	case "взять":
+		if len(words) > 1 {
+			return g.Take(strings.Join(words[1:], " "))
+		}
+		return "не указано что взять"
+
+	case "применить":
+		if len(words) > 1 {
+			return g.Use(strings.Join(words[0:], " "))
+		}
+		return "не указано что применить"
+	default:
+		return "неизвестная команда"
+
+	}
 }
 
 func main() {
-	game := InitGame()
-	fmt.Println(hendleCommand(game, "осмотреться"))
-	fmt.Println(hendleCommand(game, "идти коридор"))
 }
