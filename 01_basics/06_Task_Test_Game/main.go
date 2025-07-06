@@ -85,7 +85,11 @@ func (g *Game) Look() string { // осмотреться
 		result = []string{"пустая комната"}
 	} else if room.description != "" {
 		if g.User.CurrentRoom == "кухня" {
-			result = append(result, strings.TrimSpace(room.description))
+			if g.User.BackPack {
+				result = append(result, "надо идти в универ")
+			} else {
+				result = append(result, strings.TrimSpace(room.description))
+			}
 		} else if g.User.CurrentRoom != "кухня" && len(result) == 0 {
 			result = append(result, room.description)
 		}
@@ -104,10 +108,18 @@ func (g *Game) Walk(existName string) string { // ходить
 	}
 	for _, exit := range room.exist {
 		if exit == existName {
+			if existName == "улица" && !g.DoorState {
+				return "дверь закрыта"
+			}
 			g.User.CurrentRoom = existName
 			newRoom, ok := g.Rooms[existName]
 			if !ok {
 				return "неизвестная комната"
+			}
+			if len(newRoom.tableItems) == 1 && existName == "кухня" {
+				result := "кухня, ничего интересного" + ". можно пройти - " + strings.Join(newRoom.exist, ", ")
+				return result
+
 			}
 			result := newRoom.description + ". можно пройти - " + strings.Join(newRoom.exist, ", ")
 			return result
@@ -153,16 +165,22 @@ func (g *Game) Take(itemName string) string { // Взять
 
 }
 func (g *Game) Use(itemName string) string { // Использовать
-	if itemName != "применить ключи дверь" {
-		return "не к чему применять"
+	words := strings.Fields(itemName)
+	if itemName != "ключи дверь" {
+		if words[0] != "ключи" {
+			return "нет предмета в инвентаре - " + words[0]
+		}
+		return "не к чему применить"
 	}
+
 	for _, item := range g.User.Inventory {
 		if item == "ключи" {
 			g.DoorState = true
 			return "дверь открыта"
 		}
+
 	}
-	return "нет предмета в инвентаре - ключи"
+	return "нет предмета в инвентаре - " + words[0]
 
 }
 func handleCommand(command string, g *Game) string {
@@ -191,7 +209,7 @@ func handleCommand(command string, g *Game) string {
 
 	case "применить":
 		if len(words) > 1 {
-			return g.Use(strings.Join(words[0:], " "))
+			return g.Use(strings.Join(words[1:], " "))
 		}
 		return "не указано что применить"
 	default:
