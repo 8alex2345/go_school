@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 )
 
@@ -65,33 +66,33 @@ func InitGame() *Game {
 }
 
 func (g *Game) Look() string { // осмотреться
+	result := []string{}
 	room, ok := g.Rooms[g.User.CurrentRoom]
 	if !ok {
 		return "неизвестная комната"
-	}
-	result := []string{}
-	if g.User.CurrentRoom == "кухня" {
+	} else if g.User.CurrentRoom == "кухня" && g.KitchenState {
 		result = append(result, "ты находишься на кухне")
-
 	}
 
 	if len(room.tableItems) > 0 {
 		result = append(result, "на столе: "+strings.Join(room.tableItems, ", "))
 	}
+
 	if len(room.chairItems) > 0 {
 		result = append(result, "на стуле: "+strings.Join(room.chairItems, ", "))
 	}
+
 	if len(room.chairItems) == 0 && len(room.tableItems) == 0 {
 		result = []string{"пустая комната"}
-	} else if room.description != "" {
-		if g.User.CurrentRoom == "кухня" {
-			if g.User.BackPack {
-				result = append(result, "надо идти в универ")
-			} else {
-				result = append(result, strings.TrimSpace(room.description))
-			}
+	}
+
+	if room.description != "" {
+		if g.User.CurrentRoom == "кухня" && g.User.BackPack {
+			result = append(result, "надо идти в универ")
+		} else if g.User.CurrentRoom == "кухня" && !g.User.BackPack {
+			result = append(result, strings.TrimSpace(room.description))
 		} else if g.User.CurrentRoom != "кухня" && len(result) == 0 {
-			result = append(result, room.description)
+			result = append(result, strings.TrimSpace(room.description))
 		}
 	}
 	res := strings.Join(result, ", ")
@@ -219,4 +220,14 @@ func handleCommand(command string, g *Game) string {
 }
 
 func main() {
+	game := InitGame()
+	fmt.Println("Игра началась")
+	var input string
+	for {
+		fmt.Scan(&input)
+		if input == "выход" {
+			break
+		}
+		fmt.Println(handleCommand(input, game))
+	}
 }
