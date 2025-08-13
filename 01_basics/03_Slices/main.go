@@ -198,6 +198,6 @@ func PrintCounterSymbol(str string) {
 	result := CounterSymbol(str)
 	fmt.Println("Подсчет символов в строке:", str)
 	for char, count := range result {
-		fmt.Printf("'%c': %d\n", char, count)
+		fmt.Printf("%s: %d\n", char, count)
 	}
 }
