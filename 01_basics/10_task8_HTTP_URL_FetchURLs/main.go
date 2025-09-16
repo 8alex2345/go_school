@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"sync"
+	"time"
 )
 
 //## 8. Практическая задача:
@@ -24,14 +26,19 @@ func main() {
 		"http://example.com",
 		"http://example.org",
 	}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-	results := FetchURLs(urls)
+	results := FetchURLs(ctx, urls)
 	for url, body := range results {
 		fmt.Printf("Ответ от %s:\n%s\n\n", url, body)
 	}
 }
 
-func FetchURLs(urls []string) map[string]string {
+func FetchURLs(ctx context.Context, urls []string) map[string]string {
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+	}
 	var wg sync.WaitGroup
 	result := make(map[string]string)
 	mu := sync.Mutex{}
@@ -40,9 +47,16 @@ func FetchURLs(urls []string) map[string]string {
 		wg.Add(1)
 		go func(url string) {
 			defer wg.Done()
-			resp, err := http.Get(url)
+			req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 			if err != nil {
+				fmt.Println("Ошибка при создании запроса: ", err)
+				return
+			}
+			resp, err := client.Do(req)
+			if err != nil {
+				mu.Lock()
 				fmt.Println("Ошибка при выполнении запроса: ", err)
+				mu.Unlock()
 				return
 			}
 			defer resp.Body.Close()
@@ -53,8 +67,12 @@ func FetchURLs(urls []string) map[string]string {
 				return
 
 			}
+			content := string(body)
+			if len(content) > 100 {
+				content = content[:100]
+			}
 			mu.Lock()
-			result[url] = string(body)
+			result[url] = content
 			mu.Unlock()
 		}(url)
 	}
